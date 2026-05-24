@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPTO Store | Atendimento</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="contato.js" defer></script>
+</head>
+<body>
+
+    <header class="topbar">
+        <h1>XPTO STORE</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="loja.html">Loja</a></li>
+                <li><a href="servicos.html">Serviços</a></li>
+                <li><a href="contato.html">Atendimento</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Suporte & Atendimento ao Cliente</h2>
+            <p>Precisa de ajuda com hardware defeituoso ou tem dúvidas sobre serviços? Abra um chamado de treino.</p>
+        </section>
+
+        <div class="contato-container">
+            <form id="form-suporte" novalidate>
+                
+                <div class="grupo-form">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" placeholder="Digite seu nome">
+                    <div class="msg-erro" id="erro-nome">O nome deve conter pelo menos 3 caracteres.</div>
+                </div>
+
+                <div class="grupo-form">
+                    <label for="email">E-mail de Contato</label>
+                    <input type="email" id="email" placeholder="seuemail@exemplo.com">
+                    <div class="msg-erro" id="erro-email">Insira um endereço de e-mail válido.</div>
+                </div>
+
+                <div class="grupo-form">
+                    <label for="categoria-suporte">Tipo de Problema</label>
+                    <select id="categoria-suporte">
+                        <option value="">Selecione uma categoria...</option>
+                        <option value="compatibilidade">Dúvidas de Compatibilidade</option>
+                        <option value="defeito">Hardware com Defeito / Sem dar vídeo</option>
+                        <option value="formatacao">Problemas em Sistemas Operacionais</option>
+                        <option value="outros">Outros Assuntos</option>
+                    </select>
+                    <div class="msg-erro" id="erro-categoria">Selecione o tipo de problema.</div>
+                </div>
+
+                <div class="grupo-form">
+                    <label for="mensagem">Descrição do Problema</label>
+                    <textarea id="mensagem" placeholder="Descreva os sintomas do seu computador, peças atuais ou o serviço desejado..."></textarea>
+                    <div class="msg-erro" id="erro-mensagem">A descrição deve ter pelo menos 15 caracteres.</div>
+                </div>
+
+                <button type="submit" class="btn-enviar-suporte">Abrir Chamado Técnico</button>
+
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

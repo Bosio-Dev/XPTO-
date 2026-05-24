@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPTO Store | PC Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Carrega o banco de dados primeiro, depois o script de lógica -->
+    <script src="database.js" defer></script>
+    <script src="builder.js" defer></script>
+</head>
+<body>
+
+    <header class="topbar">
+        <h1>XPTO STORE</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="loja.html">Loja</a></li>
+                <li><a href="servicos.html">Serviços</a></li>
+                <li><a href="contato.html">Atendimento</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Construtor de Computadores Inteligente</h2>
+            <p>Monte seu setup sem medo. Nosso sistema filtra a compatibilidade e calcula tudo em tempo real.</p>
+        </section>
+
+        <div class="builder-layout">
+            <!-- Esquerda: Fluxo de Peças -->
+            <div class="builder-content">
+                <div class="secao-peca">
+                    <h3>1. Escolha a Placa-Mãe</h3>
+                    <div id="opcoes-mae" class="opcoes-carrossel"></div>
+                </div>
+                <div class="secao-peca">
+                    <h3>2. Escolha o Processador (CPU)</h3>
+                    <div id="opcoes-cpu" class="opcoes-carrossel"></div>
+                </div>
+                <div class="secao-peca">
+                    <h3>3. Escolha a Placa de Vídeo (GPU)</h3>
+                    <div id="opcoes-gpu" class="opcoes-carrossel"></div>
+                </div>
+                <div class="secao-peca">
+                    <h3>4. Memória RAM</h3>
+                    <div id="opcoes-ram" class="opcoes-carrossel"></div>
+                </div>
+                <div class="secao-peca">
+                    <h3>5. Armazenamento</h3>
+                    <div id="opcoes-armazenamento" class="opcoes-carrossel"></div>
+                </div>
+                <div class="secao-peca">
+                    <h3>6. Fonte de Alimentação</h3>
+                    <div id="opcoes-fonte" class="opcoes-carrossel"></div>
+                </div>
+                <div class="secao-peca">
+                    <h3>7. Gabinete</h3>
+                    <div id="opcoes-gabinete" class="opcoes-carrossel"></div>
+                </div>
+            </div>
+
+            <!-- Direita: Painel Fixo de Resumo e Performance -->
+            <aside class="resumo-sidebar">
+                <h3>Resumo do Setup</h3>
+                <div id="lista-resumo">
+                    <p class="id-vazio" style="color: var(--text-muted);">Nenhuma peça selecionada.</p>
+                </div>
+                
+                <div class="total-destaque">
+                    Total: R$ <span id="preco-total">0.00</span>
+                </div>
+                <div class="resumo-item" style="margin-top: 10px;">
+                    <span>Consumo Estimado:</span>
+                    <strong id="consumo-total">0W</strong>
+                </div>
+
+                <!-- Painel de Performance Estimada em Jogos -->
+                <div class="fps-lista">
+                    <h4>Média de FPS Estimada (1080p)</h4>
+                    <div id="jogos-fps">
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Escolha CPU e GPU para calcular.</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+</body>
+</html>

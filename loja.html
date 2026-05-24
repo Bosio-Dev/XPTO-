@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPTO Store | Loja de Hardware</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Importa primeiro o banco de dados e depois a lógica da loja -->
+    <script src="database.js" defer></script>
+    <script src="loja.js" defer></script>
+</head>
+<body>
+
+    <header class="topbar">
+        <h1>XPTO STORE</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="loja.html">Loja</a></li>
+                <li><a href="servicos.html">Serviços</a></li>
+                <li><a href="contato.html">Atendimento</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Catálogo Completo</h2>
+            <p>Componentes, periféricos e acessórios selecionados para o seu setup.</p>
+        </section>
+
+        <div class="loja-layout">
+            <!-- Barra Lateral de Filtros -->
+            <aside class="filtros-sidebar">
+                <h3>Filtros</h3>
+                
+                <div class="grupo-filtro">
+                    <h4>Categoria</h4>
+                    <select id="filtro-categoria">
+                        <option value="todos">Todas as Categorias</option>
+                        <option value="hardware">Hardware (CPUs, GPUs, etc)</option>
+                        <option value="perifericos">Periféricos</option>
+                        <option value="acessorios">Acessórios Gerais</option>
+                    </select>
+                </div>
+
+                <div class="grupo-filtro">
+                    <h4>Ordenar por</h4>
+                    <select id="ordenar-preco">
+                        <option value="padrao">Destaques</option>
+                        <option value="menor">Menor Preço</option>
+                        <option value="maior">Maior Preço</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- Grid Dinâmico de Produtos -->
+            <section class="produtos-container">
+                <div id="grid-produtos" class="grid-produtos">
+                    <!-- Os produtos serão gerados aqui via JavaScript -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+</body>
+</html>

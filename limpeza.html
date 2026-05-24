@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPTO Store | Limpeza e Otimização</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="limpeza.js" defer></script>
+</head>
+<body>
+
+    <header class="topbar">
+        <h1>XPTO STORE</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="loja.html">Loja</a></li>
+                <li><a href="servicos.html">Serviços</a></li>
+                <li><a href="contato.html">Atendimento</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Limpeza, Instalação & Otimização</h2>
+            <p>Selecione os procedimentos de manutenção necessários para recuperar o desempenho original da sua máquina.</p>
+        </section>
+
+        <div class="limpeza-container">
+            
+            <!-- SEÇÃO: MANUTENÇÃO FÍSICA -->
+            <div class="secao-servico">
+                <h3>1. Manutenção Física (Hardware)</h3>
+                
+                <label class="opcao-checkbox">
+                    <div>
+                        <input type="checkbox" class="chk-servico" data-preco="80" value="Limpeza Interna Geral">
+                        <span>Limpeza Interna Geral (Remoção de poeira e oxidação)</span>
+                    </div>
+                    <strong style="color: var(--primary);">+ R$ 80,00</strong>
+                </label>
+
+                <label class="opcao-checkbox">
+                    <div>
+                        <input type="checkbox" class="chk-servico" data-preco="50" value="Troca de Pasta Térmica">
+                        <span>Troca de Pasta Térmica (Processador e Placa de Vídeo)</span>
+                    </div>
+                    <strong style="color: var(--primary);">+ R$ 50,00</strong>
+                </label>
+            </div>
+
+            <!-- SEÇÃO: SOFTWARE E SISTEMA OPERACIONAL -->
+            <div class="secao-servico">
+                <h3>2. Instalação de Sistema & Otimização</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+                    Valores ajustados conforme complexidade de licença e arquitetura da plataforma.
+                </p>
+                
+                <select id="select-os" class="select-os">
+                    <option value="nenhum" data-preco="0">Nenhum serviço de sistema</option>
+                    <option value="linux" data-preco="60">Formatação + Instalação Linux (Mais em conta)</option>
+                    <option value="windows" data-preco="100">Formatação + Otimização Windows 10/11 (Mediano)</option>
+                    <option value="macos" data-preco="180">Restauração Completa MacOS (Especializado Apple)</option>
+                </select>
+            </div>
+
+            <!-- PAINEL DE TOTALIZADOR -->
+            <div class="painel-checkout">
+                <div>
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">Valor Estimado do Serviço</span>
+                    <div class="preco-limpeza">R$ <span id="total-servico">0.00</span></div>
+                </div>
+                <button class="btn-finalizar" id="btn-finalizar">Finalizar Serviço</button>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
