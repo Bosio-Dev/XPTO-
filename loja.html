@@ -3,65 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XPTO Store | Loja de Hardware</title>
+    <title>XPTO Store | Loja</title>
+
     <link rel="stylesheet" href="style.css">
-    <!-- Importa primeiro o banco de dados e depois a lógica da loja -->
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Banco (SEMPRE PRIMEIRO) -->
     <script src="database.js" defer></script>
+
+
+    <!-- Lógica da loja -->
     <script src="loja.js" defer></script>
 </head>
+
 <body>
 
+    <!-- =========================
+         HEADER
+    ========================== -->
     <header class="topbar">
         <h1>XPTO STORE</h1>
+
         <nav>
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="loja.html">Loja</a></li>
                 <li><a href="servicos.html">Serviços</a></li>
                 <li><a href="contato.html">Atendimento</a></li>
+                <li><a href="painel.html">Admin</a></li>
             </ul>
         </nav>
     </header>
 
+    <!-- =========================
+         CONTEÚDO PRINCIPAL
+    ========================== -->
     <main class="container">
+
         <section class="hero">
-            <h2>Catálogo Completo</h2>
-            <p>Componentes, periféricos e acessórios selecionados para o seu setup.</p>
+            <h2>Catálogo XPTO</h2>
+            <p>Componentes e periféricos atualizados em tempo real</p>
         </section>
 
         <div class="loja-layout">
-            <!-- Barra Lateral de Filtros -->
+
+            <!-- =========================
+                 SIDEBAR FILTROS
+            ========================== -->
             <aside class="filtros-sidebar">
+
                 <h3>Filtros</h3>
-                
+
                 <div class="grupo-filtro">
                     <h4>Categoria</h4>
                     <select id="filtro-categoria">
-                        <option value="todos">Todas as Categorias</option>
-                        <option value="hardware">Hardware (CPUs, GPUs, etc)</option>
+                        <option value="todos">Todas</option>
+                        <option value="hardware">Hardware</option>
                         <option value="perifericos">Periféricos</option>
-                        <option value="acessorios">Acessórios Gerais</option>
+                        <option value="acessorios">Acessórios</option>
                     </select>
                 </div>
 
                 <div class="grupo-filtro">
-                    <h4>Ordenar por</h4>
+                    <h4>Ordenar</h4>
                     <select id="ordenar-preco">
-                        <option value="padrao">Destaques</option>
-                        <option value="menor">Menor Preço</option>
-                        <option value="maior">Maior Preço</option>
+                        <option value="padrao">Padrão</option>
+                        <option value="menor">Menor preço</option>
+                        <option value="maior">Maior preço</option>
                     </select>
                 </div>
+
+                <button onclick="resetFiltros()" class="btn-comprar">
+                    Resetar filtros
+                </button>
+
             </aside>
 
-            <!-- Grid Dinâmico de Produtos -->
+            <!-- =========================
+                 GRID PRODUTOS
+            ========================== -->
             <section class="produtos-container">
+
                 <div id="grid-produtos" class="grid-produtos">
-                    <!-- Os produtos serão gerados aqui via JavaScript -->
+                    <!-- produtos via JS -->
                 </div>
+
             </section>
+
         </div>
     </main>
+
+    <!-- =========================
+         BOTÃO CARRINHO
+    ========================== -->
+    <button id="btn-carrinho" onclick="toggleCarrinho()">
+        <span id="icone-carrinho">🛒</span>
+        <span id="contador-carrinho">0</span>
+    </button>
+
+    <!-- =========================
+         SIDEBAR CARRINHO
+    ========================== -->
+    <aside id="sidebar-carrinho">
+
+        <h3>Seu Carrinho</h3>
+
+        <div id="carrinho-itens"></div>
+
+        <div class="carrinho-total">
+            <strong id="total-carrinho">Total: R$ 0,00</strong>
+        </div>
+
+        <button class="btn-comprar" onclick="finalizarCompra()">
+            Finalizar compra
+        </button>
+
+    </aside>
 
 </body>
 </html>

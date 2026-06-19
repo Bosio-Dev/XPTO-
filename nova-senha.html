@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset de Senha</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="database.js" defer></script>
+</head>
+
+<body>
+
+<main class="container">
+    <div class="auth-container">
+        <h2>Nova Senha</h2>
+
+        <form id="reset-form">
+            <input type="password" id="novaSenha" placeholder="Nova senha" required>
+
+            <button type="submit">Atualizar senha</button>
+        </form>
+    </div>
+</main>
+
+<script>
+const form = document.getElementById("reset-form");
+const novaSenha = document.getElementById("novaSenha");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const { error } = await supabaseClient.auth.updateUser({
+        password: novaSenha.value
+    });
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    alert("Senha atualizada com sucesso!");
+    window.location.href = "login.html";
+});
+</script>
+
+</body>
+</html>

@@ -1,79 +1,196 @@
-// Lista de produtos comercializados na Loja
-const PRODUTOS_LOJA = [
-    { nome: "NVIDIA RTX 4060 8GB", categoria: "hardware", sub: "GPU", preco: 2100 },
-    { nome: "AMD Ryzen 5 5600", categoria: "hardware", sub: "CPU", preco: 850 },
-    { nome: "Corsair Vengeance 16GB DDR4", categoria: "hardware", sub: "RAM", preco: 340 },
-    { nome: "Mouse Gamer Redragon Cobra", categoria: "perifericos", sub: "Mouse", preco: 140 },
-    { nome: "Teclado Mecânico Kumara RGB", categoria: "perifericos", sub: "Teclado", preco: 260 },
-    { nome: "Headset HyperX Cloud Stinger", categoria: "perifericos", sub: "Áudio", preco: 290 },
-    { nome: "Caixa de Som Edifier Bluetooth", categoria: "acessorios", sub: "Som", preco: 450 },
-    { nome: "Hub USB-C 4 Portas Alumínio", categoria: "acessorios", sub: "Hub", preco: 95 },
-    { nome: "Suporte Articulado para Monitor", categoria: "acessorios", sub: "Suporte", preco: 180 }
-];
+// ================================
+// LOJA XPTO - SUPABASE + CARRINHO + ESTOQUE
+// ================================
 
-// Captura dos elementos do HTML
-const gridProdutos = document.getElementById("grid-produtos");
+const grid = document.getElementById("grid-produtos");
 const filtroCategoria = document.getElementById("filtro-categoria");
 const ordenarPreco = document.getElementById("ordenar-preco");
 
-// Função principal que desenha os cards na tela
-function renderizarProdutos(produtos) {
-    gridProdutos.innerHTML = ""; // Limpa a tela antes de renderizar
+// ================================
+// CARRINHO
+// ================================
 
-    if (produtos.length === 0) {
-        gridProdutos.innerHTML = "<p style='color: var(--text-muted)'>Nenhum produto encontrado.</p>";
+let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+
+function salvarCarrinho() {
+    localStorage.setItem("carrinho", JSON.stringify(carrinho));
+}
+
+// normaliza dados
+carrinho = carrinho.map(i => ({
+    id: i.id,
+    qtd: Number(i.qtd)
+}));
+
+// ================================
+// ADICIONAR AO CARRINHO (COM ESTOQUE)
+// ================================
+
+window.adicionarCarrinho = function (id, estoque) {
+
+    const item = carrinho.find(i => i.id === id);
+
+    const qtdAtual = item ? item.qtd : 0;
+
+    if (qtdAtual >= estoque) {
+        alert("Estoque insuficiente!");
         return;
     }
 
-    produtos.forEach(produto => {
-        const cardHTML = `
-            <div class="produto-card">
-                <div>
-                    <div class="produto-badge">${produto.sub}</div>
-                    <h4>${produto.nome}</h4>
-                </div>
-                <div>
-                    <div class="produto-preco">R$ ${produto.preco.toFixed(2)}</div>
-                    <button class="btn-comprar" onclick="adicionarAoCarrinho('${produto.nome}')">Comprar</button>
-                </div>
+    if (item) {
+        item.qtd += 1;
+    } else {
+        carrinho.push({ id, qtd: 1 });
+    }
+
+    salvarCarrinho();
+    renderCarrinho();
+};
+
+// ================================
+// REMOVER ITEM
+// ================================
+
+window.removerItem = function (id) {
+    carrinho = carrinho.filter(i => i.id !== id);
+    salvarCarrinho();
+    renderCarrinho();
+};
+
+// ================================
+// TOGGLE CARRINHO
+// ================================
+
+window.toggleCarrinho = function () {
+    document.getElementById("sidebar-carrinho")
+        .classList.toggle("ativo");
+};
+
+// ================================
+// RENDER CARRINHO
+// ================================
+
+async function renderCarrinho() {
+
+    const { data: produtos } = await supabaseClient
+        .from("produtos")
+        .select("*");
+
+    const box = document.getElementById("carrinho-itens");
+    const totalBox = document.getElementById("total-carrinho");
+    const contador = document.getElementById("contador-carrinho");
+
+    let total = 0;
+    let qtdTotal = 0;
+
+    box.innerHTML = "";
+
+    carrinho.forEach(item => {
+
+        const produto = produtos.find(p => p.id === item.id);
+        if (!produto) return;
+
+        const subtotal = Number(produto.preco) * Number(item.qtd);
+
+        total += subtotal;
+        qtdTotal += item.qtd;
+
+        box.innerHTML += `
+        <div class="item-carrinho">
+            <div>
+                <strong>${produto.nome}</strong><br>
+                Qtd: ${item.qtd}
             </div>
-        `;
-        gridProdutos.innerHTML += cardHTML;
+
+            <div>
+                R$ ${subtotal.toFixed(2)}
+                <button onclick="removerItem(${item.id})">X</button>
+            </div>
+        </div>`;
+    });
+
+    totalBox.textContent = `Total: R$ ${total.toFixed(2)}`;
+    contador.textContent = qtdTotal;
+}
+
+// ================================
+// CARREGAR LOJA
+// ================================
+
+async function carregarLoja() {
+
+    const { data, error } = await supabaseClient
+        .from("produtos")
+        .select("*")
+        .order("id");
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    let produtos = data;
+
+    // filtro categoria
+    if (filtroCategoria && filtroCategoria.value !== "todos") {
+        produtos = produtos.filter(p => p.categoria === filtroCategoria.value);
+    }
+
+    // ordenação
+    if (ordenarPreco) {
+        if (ordenarPreco.value === "menor") {
+            produtos.sort((a, b) => a.preco - b.preco);
+        }
+        if (ordenarPreco.value === "maior") {
+            produtos.sort((a, b) => b.preco - a.preco);
+        }
+    }
+
+    grid.innerHTML = "";
+
+    produtos.forEach(p => {
+
+        grid.innerHTML += `
+        <div class="produto-card">
+            <div class="produto-badge">${p.sub || "Produto"}</div>
+
+            <h4>${p.nome}</h4>
+
+            <p>${p.descricao || ""}</p>
+
+            <p style="opacity:.7; font-size:12px;">
+                Estoque: ${p.estoque}
+            </p>
+
+            <div class="produto-preco">
+                R$ ${Number(p.preco).toFixed(2)}
+            </div>
+
+            <button class="btn-comprar"
+                onclick="adicionarCarrinho(${p.id}, ${p.estoque})"
+                ${p.estoque <= 0 ? "disabled" : ""}>
+                ${p.estoque > 0 ? "Comprar" : "Esgotado"}
+            </button>
+        </div>`;
     });
 }
 
-// Função responsável por processar os filtros e a ordenação
-function filtrarEOrdenar() {
-    let produtosFiltrados = [...PRODUTOS_LOJA];
+// ================================
+// REALTIME SUPABASE (SEM SETINTERVAL)
+// ================================
 
-    // 1. Filtrar por Categoria
-    const categoriaSelecionada = filtroCategoria.value;
-    if (categoriaSelecionada !== "todos") {
-        produtosFiltrados = produtosFiltrados.filter(p => p.categoria === categoriaSelecionada);
-    }
+supabaseClient
+    .channel("produtos-realtime")
+    .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "produtos" },
+        carregarLoja
+    )
+    .subscribe();
 
-    // 2. Ordenar por Preço
-    const ordem = ordenarPreco.value;
-    if (ordem === "menor") {
-        produtosFiltrados.sort((a, b) => a.preco - b.preco);
-    } else if (ordem === "maior") {
-        produtosFiltrados.sort((a, b) => b.preco - a.preco);
-    }
+// ================================
+// INIT
+// ================================
 
-    // Atualiza a tela com o resultado final
-    renderizarProdutos(produtosFiltrados);
-}
-
-// Função simulada de clique de compra (para uso futuro no GitHub)
-function adicionarAoCarrinho(nomeProduto) {
-    alert(`"${nomeProduto}" foi adicionado ao carrinho! (Funcionalidade em desenvolvimento)`);
-}
-
-// Ouvintes de eventos (Escutam as mudanças nos seletores de filtros)
-filtroCategoria.addEventListener("change", filtrarEOrdenar);
-ordenarPreco.addEventListener("change", filtrarEOrdenar);
-
-// Inicializa a página mostrando todos os itens ao carregar
-document.addEventListener("DOMContentLoaded", () => {
-    renderizarProdutos(PRODUTOS_LOJA);
-});
+carregarLoja();
+renderCarrinho();

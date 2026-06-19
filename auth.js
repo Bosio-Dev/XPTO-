@@ -1,5 +1,5 @@
 // ================================
-// XPTO STORE - AUTH.JS
+// XPTO STORE - AUTH.JS (REFEITO)
 // ================================
 
 let modoCadastro = true;
@@ -9,238 +9,338 @@ const btnCadastro = document.getElementById("btn-cadastro");
 
 const form = document.getElementById("form-auth");
 
-const campoNome = document.getElementById("nome");
-const campoTelefone = document.getElementById("telefone");
-
-const campoEmail = document.getElementById("email");
-const campoSenha = document.getElementById("senha");
+const nome = document.getElementById("nome");
+const telefone = document.getElementById("telefone");
+const email = document.getElementById("email");
+const senha = document.getElementById("senha");
 
 const btnSubmit = document.getElementById("btn-submit");
+const esqueciSenha = document.getElementById("esqueciSenha");
+const termos = document.querySelector(".checkbox-termos");
 
-inicializarFormulario();
+function animarForm(callback) {
+    form.classList.add("fade-out");
 
-function inicializarFormulario() {
-
-    btnCadastro.classList.add("ativo");
-    btnLogin.classList.remove("ativo");
-
-    campoNome.style.display = "block";
-    campoTelefone.style.display = "block";
-
-    campoNome.required = true;
-    campoTelefone.required = true;
-
-    btnSubmit.textContent = "Cadastrar";
-
-    modoCadastro = true;
+    setTimeout(() => {
+        callback();
+        form.classList.remove("fade-out");
+        form.classList.add("fade-in");
+    }, 200);
 }
 
+// =========================
+// MODOS
+// =========================
+
+function setModoLogin() {
+    animarForm(() => {
+        modoCadastro = false;
+
+        btnLogin.classList.add("ativo");
+        btnCadastro.classList.remove("ativo");
+
+        nome.style.display = "none";
+        telefone.style.display = "none";
+
+        nome.required = false;
+        telefone.required = false;
+
+        btnSubmit.textContent = "Entrar";
+
+        esqueciSenha.style.display = "inline-block";
+        termos.style.display = "none";
+        document.getElementById("aceitouTermos").required = false;
+    });
+}
+
+function setModoCadastro() {
+    animarForm(() => {
+        modoCadastro = true;
+
+        btnCadastro.classList.add("ativo");
+        btnLogin.classList.remove("ativo");
+
+        nome.style.display = "block";
+        telefone.style.display = "block";
+
+        nome.required = true;
+        telefone.required = true;
+
+        btnSubmit.textContent = "Cadastrar";
+
+        esqueciSenha.style.display = "none";
+        termos.style.display = "block";
+        document.getElementById("aceitouTermos").required = true;
+    });
+}
+
+btnLogin.addEventListener("click", setModoLogin);
+btnCadastro.addEventListener("click", setModoCadastro);
+
+// estado inicial
+setModoCadastro();
+
+// =========================
+// FEEDBACK UI (TOAST SIMPLES)
+// =========================
+
+function toast(msg, cor = "green") {
+    const div = document.createElement("div");
+
+    div.textContent = msg;
+
+    div.style.position = "fixed";
+    div.style.bottom = "20px";
+    div.style.right = "20px";
+    div.style.padding = "12px 18px";
+    div.style.background = cor;
+    div.style.color = "#fff";
+    div.style.borderRadius = "8px";
+    div.style.zIndex = "9999";
+    div.style.fontSize = "14px";
+
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2500);
+}
+
+// =========================
+// LOGIN
+// =========================
+
+async function login() {
+    try {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Entrando...";
+
+        const { error } = await supabaseClient.auth.signInWithPassword({
+            email: email.value,
+            password: senha.value
+        });
+
+        if (error) throw error;
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        const { data: funcionario } = await supabaseClient
+            .from("funcionarios")
+            .select("*")
+            .eq("email", user.email)
+            .maybeSingle();
+
+        toast("Login realizado!");
+
+        setTimeout(() => {
+            window.location.href = funcionario
+                ? "index2.html"
+                : "index.html";
+        }, 800);
+
+    } catch (err) {
+        toast(err.message, "crimson");
+
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Entrar";
+    }
+}
+
+// =========================
+// CADASTRO
+// =========================
+
+async function cadastrar() {
+    try {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Criando...";
+
+        const { data, error } = await supabaseClient.auth.signUp({
+            email: email.value,
+            password: senha.value
+        });
+
+        if (error) throw error;
+
+        const user = data.user;
+
+        await supabaseClient.from("usuarios").insert({
+            id: user.id,
+            nome: nome.value,
+            telefone: telefone.value,
+            email: email.value
+        });
+
+        toast("Cadastro realizado!");
+        setModoLogin();
+
+    } catch (err) {
+        toast(err.message, "crimson");
+
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Cadastrar";
+    }
+}
+
+// =========================
+// SUBMIT
+// =========================
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    modoCadastro ? cadastrar() : login();
+});
 
 // ================================
-// Alternar entre Login e Cadastro
+// INIT
 // ================================
 
-btnLogin.addEventListener("click", () => {
-
+function setModoLogin() {
     modoCadastro = false;
 
     btnLogin.classList.add("ativo");
     btnCadastro.classList.remove("ativo");
 
-    campoNome.style.display = "none";
-    campoTelefone.style.display = "none";
+    nome.style.display = "none";
+    telefone.style.display = "none";
 
-    campoNome.required = false;
-    campoTelefone.required = false;
+    nome.required = false;
+    telefone.required = false;
 
     btnSubmit.textContent = "Entrar";
-});
 
-btnCadastro.addEventListener("click", () => {
+    // só login mostra isso
+    esqueciSenha.style.display = "inline-block";
+    termos.style.display = "none";
+}
 
+function setModoCadastro() {
     modoCadastro = true;
 
     btnCadastro.classList.add("ativo");
     btnLogin.classList.remove("ativo");
 
-    campoNome.style.display = "block";
-    campoTelefone.style.display = "block";
+    nome.style.display = "block";
+    telefone.style.display = "block";
 
-    campoNome.required = true;
-    campoTelefone.required = true;
+    nome.required = true;
+    telefone.required = true;
 
     btnSubmit.textContent = "Cadastrar";
-});
 
+    // esconde no cadastro
+    esqueciSenha.style.display = "none";
+    termos.style.display = "block";
+}
+
+// inicial padrão
+setModoCadastro();
 
 // ================================
-// Submit
+// TROCA DE MODOS
+// ================================
+
+btnLogin.addEventListener("click", setModoLogin);
+btnCadastro.addEventListener("click", setModoCadastro);
+
+// ================================
+// SUBMIT
 // ================================
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     if (modoCadastro) {
-        await cadastrarUsuario();
+        await cadastrar();
     } else {
-        await fazerLogin();
+        await login();
     }
 });
 
-
 // ================================
-// Cadastro
+// CADASTRO
 // ================================
 
-async function cadastrarUsuario() {
-
-    const nome = campoNome.value.trim();
-    const telefone = campoTelefone.value.trim();
-    const email = campoEmail.value.trim();
-    const senha = campoSenha.value;
-
-    if (!nome || !telefone || !email || !senha) {
-        alert("Preencha todos os campos.");
-        return;
-    }
-
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Cadastrando...";
-
+async function cadastrar() {
     try {
-
-        // Cria usuário no Auth
         const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password: senha
+            email: email.value,
+            password: senha.value
         });
 
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
 
-        const user = data.user || data.session?.user;
-        if (!user) {
-            throw new Error(
-                "Confirme o e-mail enviado pelo Supabase antes de continuar."
-            );
-        }
+        const user = data.user;
 
-        if (!user) {
-            throw new Error(
-                "Não foi possível obter os dados do usuário."
-            );
-        }
+        await supabaseClient.from("usuarios").insert({
+            id: user.id,
+            nome: nome.value,
+            telefone: telefone.value,
+            email: email.value
+        });
 
-        // Salva dados extras
-        const { error: erroTabela } =
-            await supabaseClient
-                .from("usuarios")
-                .insert({
-                    id: user.id,
-                    nome,
-                    telefone,
-                    email
-                });
+        alert("Cadastro realizado.");
+        setModoLogin();
 
-        if (erroTabela) {
-            throw erroTabela;
-        }
-
-        alert(
-            "Cadastro realizado com sucesso! Faça login para continuar."
-        );
-
-        // Volta para login
-        form.reset();
-
-        alert("Cadastro realizado com sucesso! Agora faça login.");
-
-        btnLogin.click();
-
-        campoEmail.focus();
-
-    } catch (erro) {
-
-        alert("Erro: " + erro.message);
-
-    } finally {
-
-        btnSubmit.disabled = false;
-
-        btnSubmit.textContent =
-            modoCadastro
-                ? "Cadastrar"
-                : "Entrar";
+    } catch (err) {
+        alert(err.message);
     }
 }
 
+// ================================
+// LOGIN
+// ================================
+
+async function login() {
+    try {
+        const { error } = await supabaseClient.auth.signInWithPassword({
+            email: email.value,
+            password: senha.value
+        });
+
+        if (error) throw error;
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        const { data: funcionario } = await supabaseClient
+            .from("funcionarios")
+            .select("*")
+            .eq("email", user.email)
+            .maybeSingle();
+
+        if (funcionario) {
+            window.location.href = "index2.html";
+        } else {
+            window.location.href = "index.html";
+        }
+
+    } catch (err) {
+        alert(err.message);
+    }
+}
 
 // ================================
-// Login
+// ESQUECI MINHA SENHA
 // ================================
 
-async function fazerLogin() {
+esqueciSenha.addEventListener("click", async (e) => {
+    e.preventDefault();
 
-    const email = campoEmail.value.trim();
-    const senha = campoSenha.value;
+    const userEmail = email.value.trim();
 
-    if (!email || !senha) {
-        alert("Preencha todos os campos.");
+    if (!userEmail) {
+        alert("Digite seu e-mail primeiro.");
         return;
     }
 
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Entrando...";
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(userEmail, {
+        redirectTo: "http://127.0.0.1:5500/nova-senha.html"
+    });
 
-    try {
-
-        const { error } =
-            await supabaseClient.auth.signInWithPassword({
-                email,
-                password: senha
-            });
-
-        if (error) {
-            throw error;
-        }
-
-        alert("Login realizado com sucesso!");
-
-        window.location.href = "index.html";
-
-    } catch (erro) {
-
-        alert("Erro: " + erro.message);
-
-    } finally {
-
-        btnSubmit.disabled = false;
-
-        btnSubmit.textContent =
-            modoCadastro
-                ? "Cadastrar"
-                : "Entrar";
+    if (error) {
+        alert(error.message);
+        return;
     }
-}
 
-
-// ================================
-// Já está logado?
-// ================================
-
-verificarSessao();
-
-async function verificarSessao() {
-
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
-
-    if (session) {
-        console.log(
-            "Usuário logado:",
-            session.user.email
-        );
-    }
-}
+    alert("Email de recuperação enviado.");
+});

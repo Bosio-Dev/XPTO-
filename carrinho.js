@@ -1,160 +1,159 @@
-console.log("carrinho.js carregado");
-
 let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
-function adicionarAoCarrinho(nomeProduto) {
-    const produto = PRODUTOS_LOJA.find(p => p.nome === nomeProduto);
-
-    if (!produto) return;
-
-    const item = carrinho.find(i => i.nome === produto.nome);
-
-    if (item) {
-        item.quantidade++;
-    } else {
-        carrinho.push({
-            ...produto,
-            quantidade: 1
-        });
-    }
-
-    salvarCarrinho();
-    atualizarContador();
-    renderizarCarrinho();
-}
-
-function removerDoCarrinho(nomeProduto) {
-    carrinho = carrinho.filter(item => item.nome !== nomeProduto);
-
-    salvarCarrinho();
-    atualizarContador();
-    renderizarCarrinho();
-}
-
-function alterarQuantidade(nomeProduto, valor) {
-    const item = carrinho.find(i => i.nome === nomeProduto);
-
-    if (!item) return;
-
-    item.quantidade += valor;
-
-    if (item.quantidade <= 0) {
-        removerDoCarrinho(nomeProduto);
-        return;
-    }
-
-    salvarCarrinho();
-    atualizarContador();
-    renderizarCarrinho();
-}
+// normaliza
+carrinho = carrinho.map(i => ({
+    id: i.id,
+    qtd: Number(i.qtd)
+}));
 
 function salvarCarrinho() {
     localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
 
-function atualizarContador() {
-    const contador = document.getElementById("qtd-carrinho");
+window.adicionarCarrinho = function (id) {
 
-    if (!contador) return;
+    const item = carrinho.find(i => i.id === id);
 
-    const totalItens = carrinho.reduce(
-        (total, item) => total + item.quantidade,
-        0
-    );
-
-    contador.textContent = totalItens;
-}
-
-function abrirCarrinho() {
-    document.getElementById("painel-carrinho")
-        .classList.add("aberto");
-
-    renderizarCarrinho();
-}
-
-function fecharCarrinho() {
-    document.getElementById("painel-carrinho")
-        .classList.remove("aberto");
-}
-
-function renderizarCarrinho() {
-    const container = document.getElementById("itens-carrinho");
-    const totalElemento = document.getElementById("total-carrinho");
-
-    if (!container || !totalElemento) return;
-
-    if (carrinho.length === 0) {
-        container.innerHTML = "<p>Seu carrinho está vazio.</p>";
-        totalElemento.textContent = "R$ 0,00";
-        return;
+    if (item) {
+        item.qtd += 1;
+    } else {
+        carrinho.push({ id, qtd: 1 });
     }
 
-    let total = 0;
+    salvarCarrinho();
+    renderCarrinho();
 
-    container.innerHTML = "";
+    // 👇 BOUNCE AQUI (CORRETO)
+    const btn = document.getElementById("btn-carrinho");
+
+    btn.classList.remove("bounce");
+    void btn.offsetWidth;
+    btn.classList.add("bounce");
+};
+
+window.removerItem = function (id) {
+    carrinho = carrinho.filter(i => i.id !== id);
+    salvarCarrinho();
+    renderCarrinho();
+};
+
+window.toggleCarrinho = function () {
+    document.getElementById("sidebar-carrinho")
+        .classList.toggle("ativo");
+};
+
+async function renderCarrinho() {
+
+    const { data } = await supabaseClient
+        .from("produtos")
+        .select("*");
+
+    const box = document.getElementById("carrinho-itens");
+    const totalBox = document.getElementById("total-carrinho");
+    const contador = document.getElementById("contador-carrinho");
+
+    let total = 0;
+    let qtdTotal = 0;
+
+    box.innerHTML = "";
 
     carrinho.forEach(item => {
-        total += item.preco * item.quantidade;
 
-        container.innerHTML += `
-            <div class="item-carrinho">
-                <h4>${item.nome}</h4>
+        const produto = data.find(p => p.id === item.id);
+        if (!produto) return;
 
-                <p>
-                    R$ ${item.preco.toFixed(2)}
-                </p>
+        const subtotal = Number(produto.preco) * Number(item.qtd);
 
-                <div class="controle-qtd">
-                    <button onclick="alterarQuantidade('${item.nome}', -1)">−</button>
+        total += subtotal;
+        qtdTotal += item.qtd;
 
-                    <span>${item.quantidade}</span>
-
-                    <button onclick="alterarQuantidade('${item.nome}', 1)">+</button>
-                </div>
-
-                <button
-                    class="btn-remover"
-                    onclick="removerDoCarrinho('${item.nome}')"
-                >
-                    Remover
-                </button>
+        box.innerHTML += `
+        <div class="item-carrinho">
+            <div>
+                <strong>${produto.nome}</strong><br>
+                Qtd: ${item.qtd}
             </div>
-        `;
+
+            <div>
+                R$ ${subtotal.toFixed(2)}
+                <button onclick="removerItem(${item.id})">X</button>
+            </div>
+        </div>`;
     });
 
-    totalElemento.textContent =
-        `R$ ${total.toFixed(2)}`;
+    totalBox.textContent = `Total: R$ ${total.toFixed(2)}`;
+    contador.textContent = qtdTotal;
 }
 
-function finalizarPedido() {
+window.finalizarCompra = async function () {
+
     if (carrinho.length === 0) {
-        alert("Seu carrinho está vazio.");
+        alert("Carrinho vazio");
         return;
     }
 
-    let mensagem =
-        "Olá! Gostaria de solicitar um orçamento.%0A%0A";
+    // pega produtos atuais do banco
+    const { data: produtos, error } = await supabaseClient
+        .from("produtos")
+        .select("*");
 
-    let total = 0;
+    if (error) {
+        alert("Erro ao buscar produtos");
+        return;
+    }
 
-    carrinho.forEach(item => {
-        total += item.preco * item.quantidade;
+    // =========================
+    // 1. VALIDAR ESTOQUE
+    // =========================
 
-        mensagem +=
-            `• ${item.nome} (${item.quantidade}x)%0A`;
-    });
+    for (const item of carrinho) {
 
-    mensagem += `%0ATotal: R$ ${total.toFixed(2)}`;
+        const produto = produtos.find(p => p.id === item.id);
 
-    const telefone = "5527999999999";
+        if (!produto) {
+            alert("Produto não encontrado");
+            return;
+        }
 
-    window.open(
-        `https://wa.me/${telefone}?text=${mensagem}`,
-        "_blank"
-    );
-}
+        if (item.qtd > produto.estoque) {
+            alert(`Estoque insuficiente: ${produto.nome}`);
+            return;
+        }
+    }
 
-document.addEventListener("DOMContentLoaded", () => {
-    atualizarContador();
-    renderizarCarrinho();
-});
+    // =========================
+    // 2. BAIXAR ESTOQUE
+    // =========================
+
+    for (const item of carrinho) {
+
+        const produto = produtos.find(p => p.id === item.id);
+
+        const novoEstoque = produto.estoque - item.qtd;
+
+        const { error: updateError } = await supabaseClient
+            .from("produtos")
+            .update({
+                estoque: novoEstoque
+            })
+            .eq("id", item.id);
+
+        if (updateError) {
+            alert("Erro ao atualizar estoque");
+            return;
+        }
+    }
+
+    // =========================
+    // 3. FINALIZAR
+    // =========================
+
+    carrinho = [];
+    salvarCarrinho();
+    renderCarrinho();
+    carregarLoja();
+
+    alert("Compra finalizada com sucesso!");
+};
+
+renderCarrinho();
